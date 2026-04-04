@@ -1,0 +1,50 @@
+# ==========================
+# Data files and folders
+# ==========================
+# Ignore raw and processed data
+data/
+*.csv
+*.parquet
+
+# ==========================
+# Python artifacts
+# ==========================
+# Ignore compiled files and virtual environments
+__pycache__/
+*.pyc
+.env
+venv/
+.venv
+
+# ==========================
+# MLflow artifacts
+# ==========================
+# Ignore MLflow experiment tracking files
+mlflow/
+
+# ==========================
+# Jupyter Notebook
+# ==========================
+# Ignore notebook checkpoints
+.ipynb_checkpoints/
+
+# ==========================
+# IDE and Editor
+# ==========================
+# Ignore VS Code workspace settings
+.vscode/
+
+# ==========================
+# Logs
+# ==========================
+logs/
+
+# ==========================
+# Model Artifacts
+# ==========================
+artifacts/
+
+# ==========================
+# Reports
+# ==========================
+reports/

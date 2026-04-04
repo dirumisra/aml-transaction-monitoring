@@ -1,0 +1,18 @@
+# AML Project Configuration
+
+project:
+  name: AML Transaction Monitoring System
+  version: 1.0.0
+
+data:
+  raw_file: data/bronze/transactions.csv
+  silver_path: data/silver/
+  gold_path: data/gold/
+
+model:
+  test_size: 0.2
+  random_state: 42
+  threshold: 0.5
+
+mlflow:
+  experiment_name: aml-fraud-detection
