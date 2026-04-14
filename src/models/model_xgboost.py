@@ -12,9 +12,12 @@ Version : 1.0.0
 # Standard library imports
 # ==========================
 import os              # Used to dynamically build file paths → avoids hardcoding (works across environments)
-import logging         # Needed for tracking execution, debugging, and production monitoring
-import time            # Helps measure execution time (useful for performance tuning)
-import joblib          # Used to persist (save/load) trained ML models efficiently
+import logging         # Used for logging execution steps, debugging, and production monitoring
+import time            # Helps measure execution time → useful for performance tracking
+import joblib          # Used to save/load trained ML models (serialize model to file)
+
+import mlflow          # MLflow core module → used to track experiments (params, metrics, runs)
+import mlflow.sklearn  # MLflow integration for sklearn → used to log models easily (e.g., RandomForest, LogisticRegression)
 
 # ==========================
 # Third party imports
@@ -120,6 +123,7 @@ def load_data(file_path):
 # ==========================
 # Function 2: Prepare data
 # ==========================
+
 def prepare_data(df):
     """
     Split dataframe into features and target.
@@ -155,6 +159,7 @@ def prepare_data(df):
 # ==========================
 # Function 3: Apply SMOTE
 # ==========================
+
 def apply_smote(X_train, y_train):
     """
     Apply SMOTE to balance minority class in training data.
@@ -269,6 +274,7 @@ def train_model(X_train, y_train):
 # ==========================
 # Function 5: Evaluate model
 # ==========================
+
 def evaluate_model(model, X_test, y_test):
     """
     Evaluate trained model using multiple metrics.
@@ -339,6 +345,7 @@ def evaluate_model(model, X_test, y_test):
 # ==========================
 # Function 6: Save model
 # ==========================
+
 def save_model(model, artifact_path):
     """
     Save trained model to disk as pkl file.
@@ -359,40 +366,111 @@ def save_model(model, artifact_path):
 # ==========================
 # Function 7: Main entry point
 # ==========================
+
 def main():
     """
-    Orchestrate full XGBoost training pipeline.
-    Load → Prepare → SMOTE → Train → Evaluate → Save
+    Orchestrate full XGBoost training pipeline with MLflow tracking.
+
+    WHY this pipeline:
+    - Ensures end-to-end automation (no manual steps)
+    - Tracks experiments → critical for model comparison & reproducibility
+    - Follows production ML lifecycle (data → train → evaluate → deploy-ready)
+
+    Flow:
+    Load → Prepare → SMOTE → Train → Evaluate → Save → Log
     """
+
     logger.info("=" * 60)
     logger.info("XGBoost Pipeline — START")
     logger.info("=" * 60)
+    # WHY: Clear visual separation in logs → helps debugging in long pipelines
 
     start_time = time.time()
+    # WHY: Track total pipeline execution time (important for optimization & SLAs)
 
-    # Step 1: Load Gold data
-    df = load_data(GOLD_FILE)
+    # Set MLflow experiment name
+    mlflow.set_experiment("aml-fraud-detection")
+    # WHY:
+    # - Groups all runs under one experiment
+    # - Makes it easy to compare multiple model versions (RF vs XGBoost vs tuning)
 
-    # Step 2: Prepare features and target — 80/20 split
-    X_train, X_test, y_train, y_test = prepare_data(df)
+    with mlflow.start_run(run_name="XGBoost"):
+        # WHY:
+        # - Each run = one experiment execution
+        # - Enables tracking parameters, metrics, artifacts in a structured way
 
-    # Step 3: Apply SMOTE on training data only
-    X_train, y_train = apply_smote(X_train, y_train)
+        # Step 1: Load Gold data
+        df = load_data(GOLD_FILE)
+        # WHY:
+        # - Gold layer = clean, validated, model-ready data
+        # - Avoids reprocessing raw/dirty data every time
 
-    # Step 4: Train XGBoost model
-    model = train_model(X_train, y_train)
+        # Step 2: Prepare features and target
+        X_train, X_test, y_train, y_test = prepare_data(df)
+        # WHY:
+        # - Splitting ensures unbiased evaluation
+        # - Prevents data leakage (model should not see test data during training)
 
-    # Step 5: Evaluate model on test data
-    metrics = evaluate_model(model, X_test, y_test)
+        # Step 3: Apply SMOTE
+        X_train, y_train = apply_smote(X_train, y_train)
+        # WHY:
+        # - AML datasets are highly imbalanced (very few fraud cases)
+        # - SMOTE synthetically generates minority samples
+        # - Helps model learn fraud patterns better
 
-    # Step 6: Save trained model to artifacts
-    save_model(model, ARTIFACT_PATH)
+        # Step 4: Train model
+        model = train_model(X_train, y_train)
+        # WHY:
+        # - Uses XGBoost — sequential boosting approach
+        # - Each tree fixes mistakes of previous tree
+
+        # Step 5: Evaluate model
+        metrics = evaluate_model(model, X_test, y_test)
+        # WHY:
+        # - Evaluation on unseen data = real performance
+        # - Prevents overfitting assumptions
+
+        # Step 6: Log parameters to MLflow
+        mlflow.log_param("model", "XGBoost")
+        mlflow.log_param("learning_rate", LEARNING_RATE)
+        mlflow.log_param("scale_pos_weight", SCALE_POS_WEIGHT)
+        # WHY:
+        # - Parameters must be tracked to reproduce results later
+        # - Helps compare which configuration worked best
+
+        # Step 7: Log metrics to MLflow
+        mlflow.log_metric("precision", metrics["precision"])
+        mlflow.log_metric("recall", metrics["recall"])
+        mlflow.log_metric("f1", metrics["f1"])
+        mlflow.log_metric("auc_roc", metrics["auc_roc"])
+        # WHY:
+        # - Metrics define model success
+        # - AML focus → recall & AUC are critical (catch fraud cases)
+        # - Enables experiment comparison in MLflow UI
+
+        # Step 8: Save model locally
+        save_model(model, ARTIFACT_PATH)
+        # WHY:
+        # - Persist model for inference (API / batch scoring)
+        # - Needed for deployment outside MLflow as well
+
+        # Step 9: Log model to MLflow
+        mlflow.sklearn.log_model(model, "xgboost_model")
+        # WHY:
+        # - Stores model as artifact in MLflow
+        # - Enables versioning, registry, and easy deployment
+
+        logger.info("MLflow tracking complete ✅")
 
     elapsed = time.time() - start_time
     logger.info(f"Time taken: {elapsed:.2f} seconds")
+    # WHY:
+    # - Helps identify performance bottlenecks (SMOTE / training / I/O)
+
     logger.info("=" * 60)
     logger.info("XGBoost Pipeline — COMPLETE")
     logger.info("=" * 60)
+
 
 # ==========================
 # Script entry point

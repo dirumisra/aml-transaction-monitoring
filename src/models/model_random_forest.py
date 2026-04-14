@@ -15,6 +15,8 @@ import os
 import logging
 import time
 import joblib
+import mlflow
+import mlflow.sklearn
 
 # ==========================
 # Third party imports
@@ -296,43 +298,111 @@ def save_model(model, artifact_path):
 # ==========================
 # Function 7: Main entry point
 # ==========================
+
 def main():
     """
-    Orchestrate full Random Forest training pipeline.
-    Load → Prepare → SMOTE → Train → Evaluate → Save
+    Orchestrate full Random Forest training pipeline with MLflow tracking.
+
+    WHY this pipeline:
+    - Standardizes ML workflow (data → train → evaluate → track → save)
+    - Enables experiment comparison (Random Forest vs XGBoost)
+    - Ensures reproducibility and auditability (critical in AML use case)
+
+    Flow:
+    Load → Prepare → SMOTE → Train → Evaluate → Save → Log
     """
+
     logger.info("=" * 60)
     logger.info("Random Forest Pipeline — START")
     logger.info("=" * 60)
+    # WHY: Clear log boundaries → easier debugging when multiple pipelines run
 
     start_time = time.time()
+    # WHY: Track execution time → helps optimize slow steps (SMOTE, training)
 
-    # Step 1: Load Gold data
-    df = load_data(GOLD_FILE)
+    mlflow.set_experiment("aml-fraud-detection")
+    # WHY:
+    # - Keeps RF and XGBoost runs under same experiment
+    # - Enables direct comparison of models in MLflow UI
 
-    # Step 2: Prepare features and target — 80/20 split
-    X_train, X_test, y_train, y_test = prepare_data(df)
+    with mlflow.start_run(run_name="Random Forest"):
+        # WHY:
+        # - Each run represents one model execution
+        # - Stores params, metrics, and artifacts for tracking
 
-    # Step 3: Apply SMOTE on training data only
-    X_train, y_train = apply_smote(X_train, y_train)
+        df = load_data(GOLD_FILE)
+        # WHY:
+        # - Gold layer ensures clean, feature-engineered data
+        # - Avoids reprocessing raw data every run
 
-    # Step 4: Train Random Forest model
-    model = train_model(X_train, y_train)
+        X_train, X_test, y_train, y_test = prepare_data(df)
+        # WHY:
+        # - Train/test split prevents data leakage
+        # - Ensures model is evaluated on unseen data
 
-    # Step 5: Evaluate model on test data
-    metrics = evaluate_model(model, X_test, y_test)
+        X_train, y_train = apply_smote(X_train, y_train)
+        # WHY:
+        # - Fraud data is highly imbalanced
+        # - SMOTE generates synthetic minority samples
+        # - Helps Random Forest learn fraud patterns better
 
-    # Step 6: Save trained model to artifacts
-    save_model(model, ARTIFACT_PATH)
+        model = train_model(X_train, y_train)
+        # WHY:
+        # - Random Forest uses bagging (parallel trees)
+        # - Reduces variance and overfitting compared to single tree
+
+        metrics = evaluate_model(model, X_test, y_test)
+        # WHY:
+        # - Evaluation on test data gives real-world performance
+        # - Prevents over-optimistic training results
+
+        mlflow.log_param("model", "Random Forest")
+        mlflow.log_param("n_estimators", N_ESTIMATORS)
+        mlflow.log_param("class_weight", "balanced")
+        mlflow.log_param("test_size", TEST_SIZE)
+        # WHY:
+        # - Parameters are logged for reproducibility
+        # - class_weight="balanced":
+        #   → Automatically adjusts weights for minority class
+        #   → Alternative to scale_pos_weight (used in XGBoost)
+
+        mlflow.log_metric("precision", metrics["precision"])
+        mlflow.log_metric("recall", metrics["recall"])
+        mlflow.log_metric("f1", metrics["f1"])
+        mlflow.log_metric("auc_roc", metrics["auc_roc"])
+        # WHY:
+        # - Precision → reduces false alarms
+        # - Recall → critical for AML (don’t miss fraud)
+        # - F1 → balance between both
+        # - AUC → best metric for imbalanced classification
+
+        save_model(model, ARTIFACT_PATH)
+        # WHY:
+        # - Saves model for deployment (API / batch scoring)
+        # - Needed outside MLflow as well
+
+        mlflow.sklearn.log_model(model, "rf_model")
+        # WHY:
+        # - Stores model in MLflow for versioning & registry
+        # - Enables easy deployment later
+
+        logger.info("MLflow tracking complete ✅")
 
     elapsed = time.time() - start_time
     logger.info(f"Time taken: {elapsed:.2f} seconds")
+    # WHY:
+    # - Helps identify performance bottlenecks
+
     logger.info("=" * 60)
     logger.info("Random Forest Pipeline — COMPLETE")
     logger.info("=" * 60)
+
 
 # ==========================
 # Script entry point
 # ==========================
 if __name__ == "__main__":
     main()
+    # WHY:
+    # - Ensures this script runs only when executed directly
+    # - Prevents accidental execution when imported as a module
