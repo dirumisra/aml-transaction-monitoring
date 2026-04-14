@@ -21,7 +21,10 @@ venv/
 # ==========================
 # Ignore MLflow experiment tracking files
 mlflow/
+mlruns/
 
+# Test notebooks
+notebooks/test.ipynb
 # ==========================
 # Jupyter Notebook
 # ==========================
