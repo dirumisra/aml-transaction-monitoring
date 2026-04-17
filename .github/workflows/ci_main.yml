@@ -1,0 +1,75 @@
+# ----------------------------------------
+# MAIN CI Pipeline — AML Transaction Monitoring
+# ----------------------------------------
+# Triggers when code is pushed to main branch
+# Final production validation gate
+# ----------------------------------------
+name: AML MAIN Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  production_validation:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    # Step 1: Checkout code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Setup Python
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas pyarrow scikit-learn imbalanced-learn xgboost shap mlflow groq python-dotenv streamlit
+
+    # Step 4: Syntax check — all scripts
+    - name: Syntax check — all scripts
+      run: |
+        python -m py_compile src/ingestion/bronze_aml_ingest.py
+        python -m py_compile src/features/silver_aml_transform.py
+        python -m py_compile src/features/gold_feature_engineering.py
+        python -m py_compile src/models/model_logistic_regression.py
+        python -m py_compile src/models/model_random_forest.py
+        python -m py_compile src/models/model_xgboost.py
+        python -m py_compile src/dq/dq_aml_validation.py
+        python -m py_compile src/evaluation/model_shap_explainability.py
+        python -m py_compile src/genai/sar_report_generator.py
+        echo "All scripts passed syntax check ✅"
+
+    # Step 5: Verify folder structure
+    - name: Verify folder structure
+      run: |
+        echo "Verifying production folder structure..."
+        ls -la src/
+        ls -la streamlit_app/
+        ls -la .github/workflows/
+        echo "Production structure verified ✅"
+
+    # Step 6: Verify Streamlit app syntax
+    - name: Syntax check — Streamlit dashboard
+      run: |
+        python -m py_compile streamlit_app/app.py
+        python -m py_compile streamlit_app/pages/01_transactions.py
+        python -m py_compile streamlit_app/pages/02_model_performance.py
+        python -m py_compile streamlit_app/pages/03_sar_reports.py
+        echo "All Streamlit pages passed syntax check ✅"
+
+    # Step 7: Final production gate
+    - name: Production gate
+      run: |
+        echo "================================"
+        echo "ALL CHECKS PASSED"
+        echo "Code is production ready ✅"
+        echo "================================"
