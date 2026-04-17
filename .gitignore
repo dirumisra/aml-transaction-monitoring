@@ -46,3 +46,5 @@ logs/
 # Model Artifacts
 # ==========================
 artifacts/reports/*.txt
+artifacts/*.pkl
+reports/SAR_*.txt
