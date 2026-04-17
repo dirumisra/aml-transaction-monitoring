@@ -45,4 +45,4 @@ logs/
 # ==========================
 # Model Artifacts
 # ==========================
-artifacts/
+artifacts/reports/*.txt
