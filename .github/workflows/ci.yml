@@ -1,0 +1,81 @@
+# ----------------------------------------
+# AML CI Pipeline
+# ----------------------------------------
+# This workflow runs automated checks whenever:
+# - Code is pushed to dev or main branch
+# - A pull request is created targeting dev or main
+# ----------------------------------------
+
+name: AML CI Pipeline
+
+on:
+  push:
+    branches: [dev, main]        # Trigger on push to dev/main
+  pull_request:
+    branches: [dev, main]        # Trigger on PRs to dev/main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest       # Use latest Ubuntu runner
+
+    steps:
+
+    # ----------------------------
+    # Step 1: Checkout repository
+    # ----------------------------
+    - name: Checkout code
+      uses: actions/checkout@v3   # Pulls repo code into runner
+
+    # ----------------------------
+    # Step 2: Setup Python
+    # ----------------------------
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"   # Define Python version
+
+    # ----------------------------
+    # Step 3: Install dependencies
+    # ----------------------------
+    - name: Install dependencies
+      run: |
+        # Upgrade pip to latest version
+        python -m pip install --upgrade pip
+
+        # Install required libraries for AML project
+        pip install pandas pyarrow scikit-learn imbalanced-learn xgboost shap mlflow groq python-dotenv
+
+    # ----------------------------
+    # Step 4: Validate project structure
+    # ----------------------------
+    - name: Verify project structure
+      run: |
+        echo "Checking project structure..."
+        ls -la                  # List root directory files
+
+        echo "Checking src folder..."
+        ls -la src/             # Ensure src folder exists and is populated
+
+    # ----------------------------
+    # Step 5: Syntax check (Models)
+    # ----------------------------
+    - name: Syntax check — models
+      run: |
+        # Compile model scripts to detect syntax errors
+        python -m py_compile src/models/model_logistic_regression.py
+        python -m py_compile src/models/model_random_forest.py
+        python -m py_compile src/models/model_xgboost.py
+
+        echo "All model scripts passed syntax check ✅"
+
+    # ----------------------------
+    # Step 6: Syntax check (Pipeline)
+    # ----------------------------
+    - name: Syntax check — pipeline
+      run: |
+        # Compile data pipeline scripts (Bronze → Silver → Gold)
+        python -m py_compile src/ingestion/bronze_aml_ingest.py
+        python -m py_compile src/features/silver_aml_transform.py
+        python -m py_compile src/features/gold_feature_engineering.py
+
+        echo "All pipeline scripts passed syntax check ✅"
