@@ -3,7 +3,6 @@
 # ==========================
 # Ignore raw and processed data
 data/
-*.csv
 *.parquet
 
 # ==========================
