@@ -1,16 +1,14 @@
 # ----------------------------------------
 # UAT CI Pipeline — AML Transaction Monitoring
 # ----------------------------------------
-# Triggers when code is pushed to UAT branch
-# Runs full validation and auto merges to MAIN
+# This workflow runs automated checks whenever:
+# - Code is pushed to uat branch
 # ----------------------------------------
 
 name: AML UAT Pipeline
 
 on:
   push:
-    branches: [uat]
-  pull_request:
     branches: [uat]
 
 permissions:
@@ -23,7 +21,7 @@ jobs:
     steps:
 
     # ----------------------------
-    # Step 1: Checkout code
+    # Step 1: Checkout repository
     # ----------------------------
     - name: Checkout code
       uses: actions/checkout@v4
@@ -48,7 +46,17 @@ jobs:
         pip install pandas pyarrow scikit-learn imbalanced-learn xgboost shap mlflow groq python-dotenv
 
     # ----------------------------
-    # Step 4: Syntax check all scripts
+    # Step 4: Validate project structure
+    # ----------------------------
+    - name: Verify project structure
+      run: |
+        echo "Checking project structure..."
+        ls -la
+        echo "Checking src folder..."
+        ls -la src/
+
+    # ----------------------------
+    # Step 5: Syntax check (Pipeline + Models + GenAI)
     # ----------------------------
     - name: Syntax check — all scripts
       run: |
@@ -64,30 +72,29 @@ jobs:
         echo "All scripts passed syntax check ✅"
 
     # ----------------------------
-    # Step 5: Verify folder structure
-    # ----------------------------
-    - name: Verify folder structure
-      run: |
-        echo "Verifying enterprise folder structure..."
-        ls -la src/
-        ls -la src/models/
-        ls -la src/features/
-        ls -la src/ingestion/
-        ls -la src/genai/
-        ls -la src/evaluation/
-        echo "Folder structure verified ✅"
-
-    # ----------------------------
     # Step 6: Auto merge to MAIN
     # ----------------------------
     - name: Auto merge UAT to MAIN
       if: success()
       run: |
+        echo "Starting merge from UAT → MAIN..."
+
         git config user.email "github-actions@github.com"
         git config user.name "GitHub Actions"
+
+        # Fetch latest branches
         git fetch origin
+
+        # Checkout main branch
         git checkout main
-        git merge origin/uat --no-edit --allow-unrelated-histories
+
+        # Pull latest changes from main (CRITICAL FIX)
+        git pull origin main
+
+        # Merge UAT into MAIN (fail if conflict)
+        git merge origin/uat --no-edit || exit 1
+
+        # Push to MAIN
         git push origin main
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        echo "UAT successfully merged into MAIN ✅"
