@@ -1,47 +1,47 @@
 # ==========================
 # Data processing
 # ==========================
-pandas==2.2.2
-numpy==1.26.4
-pyarrow==15.0.2
+pandas
+numpy
+pyarrow
 
 # ==========================
 # Machine Learning
 # ==========================
-scikit-learn==1.4.2
-xgboost==2.0.3
-imbalanced-learn==0.12.2
+scikit-learn
+xgboost
+imbalanced-learn
 
 # ==========================
 # Experiment Tracking
 # ==========================
-mlflow==2.12.1
+mlflow
 
 # ==========================
 # Explainability
 # ==========================
-shap==0.45.0
+shap
 
 # ==========================
 # Visualization
 # ==========================
-matplotlib==3.8.4
-seaborn==0.13.2
-plotly==5.21.0
+matplotlib
+seaborn
+plotly
 
 # ==========================
 # Dashboard
 # ==========================
-streamlit==1.33.0
-Pillow==10.3.0
+streamlit
+Pillow
 
 # ==========================
 # GenAI
 # ==========================
-groq==1.1.2
+groq
 
 # ==========================
 # Utilities
 # ==========================
-python-dotenv==1.0.1
-joblib==1.4.0
+python-dotenv
+joblib
