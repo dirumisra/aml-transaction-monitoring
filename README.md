@@ -123,13 +123,13 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    A[👨‍💻 Developer\ngit push] --> B
+    A[👨‍💻 Developer\ngit push dev] --> B
 
     B[🔵 DEV Branch\nci_dev.yml] --> B1[✅ Syntax check\nModels + Pipeline]
-    B1 --> C
+    B1 -->|auto merge| C
 
     C[🟡 UAT Branch\nci_uat.yml] --> C1[✅ Full validation\nAll modules + DQ + GenAI]
-    C1 --> D
+    C1 -->|auto merge| D
 
     D[🟢 MAIN Branch\nci_main.yml] --> D1[✅ Production gate\nAll + Streamlit dashboard]
 
@@ -140,6 +140,18 @@ flowchart LR
     style C1 fill:#1e5a3a,color:#ffffff,stroke:#3ac47a
     style D fill:#1e5a1e,color:#ffffff,stroke:#3ac43a
     style D1 fill:#1e5a3a,color:#ffffff,stroke:#3ac47a
+```
+
+### How It Works
+
+| Branch | Pipeline | Checks | On Success |
+|---|---|---|---|
+| dev | ci_dev.yml | Syntax check — models + pipeline | Auto merge → UAT |
+| uat | ci_uat.yml | Full validation — all modules | Auto merge → MAIN |
+| main | ci_main.yml | Production gate — all + Streamlit | Pipeline complete ✅ |
+
+> **One push to dev triggers the entire pipeline automatically.**
+> No manual merging required — code flows from DEV → UAT → MAIN on its own.
 ```
 ## 📁 Project Structure
 
