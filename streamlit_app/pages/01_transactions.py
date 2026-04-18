@@ -19,11 +19,14 @@ st.markdown("---")
 # File path setup
 # ----------------------------
 
-# Get current file directory
+# Get current file directory (pages/ folder)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Sample data lives inside streamlit_app folder — committed to GitHub
-SAMPLE_FILE = os.path.join(BASE_DIR, "sample_data.csv")
+# Go one level up to streamlit_app/ folder
+STREAMLIT_DIR = os.path.abspath(os.path.join(BASE_DIR, ".."))
+
+# Sample data lives in streamlit_app/ — committed to GitHub
+SAMPLE_FILE = os.path.join(STREAMLIT_DIR, "sample_data.csv")
 
 # ----------------------------
 # Data loading (cached)
