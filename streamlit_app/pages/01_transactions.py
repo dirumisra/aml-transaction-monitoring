@@ -6,7 +6,6 @@ Purpose : Transaction monitoring page — view and filter suspicious transaction
 
 import streamlit as st
 import pandas as pd
-import pyarrow.parquet as pq
 import os
 
 # Configure Streamlit page settings (title, icon, layout)
@@ -23,12 +22,8 @@ st.markdown("---")
 # Get current file directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Navigate to project root (two levels up)
-PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, "..", ".."))
-
-# Define path to the processed (gold layer) dataset
-GOLD_FILE = os.path.join(PROJECT_ROOT, "data", "gold", "aml_gold.parquet")
-
+# Sample data lives inside streamlit_app folder — committed to GitHub
+SAMPLE_FILE = os.path.join(BASE_DIR, "sample_data.csv")
 
 # ----------------------------
 # Data loading (cached)
@@ -37,16 +32,14 @@ GOLD_FILE = os.path.join(PROJECT_ROOT, "data", "gold", "aml_gold.parquet")
 @st.cache_data
 def load_data():
     """
-    Load a subset of parquet data for performance optimization.
-    Reads only the first batch (10k rows) to keep UI responsive.
+    Load sample data from CSV file.
+    500 rows committed to GitHub for Streamlit Cloud compatibility.
+    Full 179M row dataset available locally via Gold parquet layer.
     """
-    pf = pq.ParquetFile(GOLD_FILE)
-    batch = next(pf.iter_batches(batch_size=10000))
-    return batch.to_pandas()
+    return pd.read_csv(SAMPLE_FILE)
 
 # Load dataframe
 df = load_data()
-
 
 # ----------------------------
 # Sidebar filters
@@ -61,7 +54,6 @@ show_suspicious = st.sidebar.checkbox("Show Suspicious Only", value=False)
 if show_suspicious:
     df = df[df["is_laundering"] == 1]
 
-
 # ----------------------------
 # Main table display
 # ----------------------------
@@ -72,7 +64,6 @@ st.markdown(f"### Showing {len(df):,} transactions")
 # Render dataframe in full width container
 st.dataframe(df, use_container_width=True)
 
-
 # ----------------------------
 # Summary metrics
 # ----------------------------
@@ -81,9 +72,7 @@ st.dataframe(df, use_container_width=True)
 col1, col2 = st.columns(2)
 
 with col1:
-    # Total number of rows displayed
     st.metric("Total Rows", f"{len(df):,}")
 
 with col2:
-    # Total number of suspicious transactions
     st.metric("Suspicious", f"{df['is_laundering'].sum():,}")
