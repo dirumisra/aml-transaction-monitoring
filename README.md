@@ -220,3 +220,18 @@ streamlit run streamlit_app/app.py
 
 *Built as an enterprise-grade portfolio project demonstrating end-to-end ML engineering capabilities.*
 
+---
+
+## 🙏 Acknowledgements
+
+This project was built with dedication and a commitment to deep understanding — every line of code typed manually, every concept understood before implementation.
+
+Special thanks to the learning process that made this possible — from Bronze layer ingestion to GenAI SAR generation, every step was a lesson in enterprise ML engineering.
+
+> *"The best way to learn is to build something real."*
+
+If you found this project useful or inspiring, feel free to ⭐ star the repository and connect on [LinkedIn](https://www.linkedin.com/in/dirumisra/).
+
+---
+
+*Built with ❤️ by Dhiraj Mishra — April 2026*
