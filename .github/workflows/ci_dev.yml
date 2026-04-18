@@ -10,9 +10,9 @@ name: AML CI Pipeline
 
 on:
   push:
-    branches: [dev, main]        # Trigger on push to dev/main
+    branches: [dev]        # Trigger on push to dev/main
   pull_request:
-    branches: [dev, main]        # Trigger on PRs to dev/main
+    branches: [dev]        # Trigger on PRs to dev/main
 
 jobs:
   build:
@@ -79,3 +79,18 @@ jobs:
         python -m py_compile src/features/gold_feature_engineering.py
 
         echo "All pipeline scripts passed syntax check ✅"
+
+    # ----------------------------
+    # Step 7: Auto merge to UAT
+    # ----------------------------
+    - name: Auto merge dev to UAT
+      if: success()
+      run: |
+        git config user.email "github-actions@github.com"
+        git config user.name "GitHub Actions"
+        git fetch origin
+        git checkout uat
+        git merge origin/dev --no-edit
+        git push origin uat
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

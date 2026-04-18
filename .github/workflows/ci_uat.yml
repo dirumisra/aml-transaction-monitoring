@@ -59,3 +59,16 @@ jobs:
         ls -la src/genai/
         ls -la src/evaluation/
         echo "Folder structure verified ✅"
+
+    # Step 6: Auto merge to MAIN if all checks pass
+    - name: Auto merge UAT to MAIN
+      if: success()
+      run: |
+        git config user.email "github-actions@github.com"
+        git config user.name "GitHub Actions"
+        git fetch origin
+        git checkout main
+        git merge origin/uat --no-edit
+        git push origin main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
