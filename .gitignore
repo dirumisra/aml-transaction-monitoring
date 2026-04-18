@@ -48,3 +48,9 @@ logs/
 artifacts/reports/*.txt
 artifacts/*.pkl
 reports/SAR_*.txt
+
+# ==========================
+# exception
+# =====================
+*.csv
+!streamlit_app/sample_data.csv
