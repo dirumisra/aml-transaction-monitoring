@@ -21,7 +21,10 @@ jobs:
     # Step 1: Checkout code
     - name: Checkout code
       uses: actions/checkout@v4
-
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
     # Step 2: Setup Python
     - name: Set up Python 3.10
       uses: actions/setup-python@v5
@@ -60,7 +63,9 @@ jobs:
         ls -la src/evaluation/
         echo "Folder structure verified ✅"
 
-    # Step 6: Auto merge to MAIN if all checks pass
+        # ----------------------------
+    # Step 6: Auto merge to MAIN
+    # ----------------------------
     - name: Auto merge UAT to MAIN
       if: success()
       run: |
@@ -68,7 +73,7 @@ jobs:
         git config user.name "GitHub Actions"
         git fetch origin
         git checkout main
-        git merge origin/uat --no-edit
+        git merge origin/uat --no-edit --allow-unrelated-histories
         git push origin main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

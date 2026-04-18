@@ -25,6 +25,9 @@ jobs:
     # ----------------------------
     - name: Checkout code
       uses: actions/checkout@v4   # Pulls repo code into runner
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token for auth
 
     # ----------------------------
     # Step 2: Setup Python
@@ -90,7 +93,7 @@ jobs:
         git config user.name "GitHub Actions"
         git fetch origin
         git checkout uat
-        git merge origin/dev --no-edit
+        git merge origin/dev --no-edit --allow-unrelated-histories
         git push origin uat
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
