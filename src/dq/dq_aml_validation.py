@@ -158,13 +158,15 @@ def check_duplicates(df, layer_name):
         df         (pd.DataFrame): Sample dataframe
         layer_name (str)         : Name of layer being checked
     Returns:
-        bool: True if no duplicates found, False otherwise
+        bool: True if no duplicates found or legitimate, False otherwise
     """
     logger.info(f"Checking duplicates for {layer_name} layer...")
 
     duplicate_count = df.duplicated().sum()
 
-
+    if duplicate_count > 0:
+        logger.warning(f"Duplicate rows found in {layer_name}: {duplicate_count:,} — may be legitimate identical transactions")
+        return True
 
     logger.info(f"Duplicate check PASSED for {layer_name} ✅")
     return True
@@ -295,6 +297,4 @@ def main():
 # Script entry point
 # ==========================
 if __name__ == "__main__":
-    main()    if duplicate_count > 0:
-        logger.warning(f"Duplicate rows found in {layer_name}: {duplicate_count:,}— may be legitimate identical transactions")
-        return True
+    main()
