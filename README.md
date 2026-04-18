@@ -218,7 +218,7 @@ streamlit run streamlit_app/app.py
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Dhiru_Misra-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/dirumisra/)
 [![GitHub](https://img.shields.io/badge/GitHub-dirumisra-black?style=flat-square&logo=github)](https://github.com/dirumisra)
 
-[![Streamlit App](https://img.shields.io/badge/Streamlit-Live_Demo-red?style=flat-square&logo=streamlit)](https://dirumisra-aml-transaction-monitoring-streamlit-appapp-0jbobc.streamlit.app)
+[![Streamlit App](https://img.shields.io/badge/Streamlit-Live_Demo-red?style=flat-square&logo=streamlit)](https://aml-transaction-monitoring-juxxygy4xnmjmp2emdzzd5.streamlit.app)
 
 *Built as an enterprise-grade portfolio project demonstrating end-to-end ML engineering capabilities.*
 
